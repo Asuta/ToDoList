@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑状态样式测试</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* 测试专用样式 */
+    .test-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: var(--surface-color);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .test-section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+    
+    .test-section h3 {
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+    
+    .test-instructions {
+      background-color: var(--background-color);
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .test-group {
+      background-color: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    
+    .test-group-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .test-group-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: var(--transition);
+      min-width: 100px;
+    }
+    
+    .test-group-name:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .test-group-name:focus {
+      outline: 2px solid white;
+      outline-offset: 2px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .test-group-items {
+      padding: 1rem;
+    }
+    
+    .test-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      background-color: var(--background-color);
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-color);
+      transition: var(--transition);
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .test-item:hover {
+      background-color: white;
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .test-item-content {
+      flex: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: var(--transition);
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+    
+    .test-item-content:hover {
+      background-color: var(--border-color);
+    }
+    
+    .test-item-content:focus {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+      background-color: white;
+    }
+    
+    .test-controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .test-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .test-btn:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .test-status {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+    }
+    
+    .test-status.success {
+      background-color: #dcfce7;
+      border-color: #16a34a;
+      color: #15803d;
+    }
+    
+    .test-status.error {
+      background-color: #fef2f2;
+      border-color: #dc2626;
+      color: #dc2626;
+    }
+    
+    .test-status.info {
+      background-color: #dbeafe;
+      border-color: #2563eb;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1>编辑状态样式测试</h1>
+    
+    <div class="test-instructions">
+      <h3>测试说明</h3>
+      <p>请按照以下步骤测试编辑状态样式：</p>
+      <ol>
+        <li><strong>测试组名编辑</strong>：双击下面的组名，查看编辑状态样式是否正确显示</li>
+        <li><strong>测试条目编辑</strong>：双击下面的条目内容，查看编辑状态样式是否正确显示</li>
+        <li><strong>验证样式</strong>：确保编辑状态下文字颜色清晰可见，背景为白色或浅色</li>
+        <li><strong>测试键盘操作</strong>：在编辑状态下按Enter键确认，按Esc键取消</li>
+      </ol>
+    </div>
+    
+    <div class="test-section">
+      <h3>组名编辑测试</h3>
+      <div class="test-group">
+        <div class="test-group-header">
+          <h2 class="test-group-name" data-original-name="测试组">测试组</h2>
+          <div class="test-group-actions">
+            <button class="test-btn" onclick="resetGroupName()">重置组名</button>
+          </div>
+        </div>
+        <div class="test-group-items">
+          <div class="test-item">
+            <input type="checkbox" class="item-checkbox">
+            <div class="test-item-content" data-original-content="这是一个测试条目">这是一个测试条目</div>
+            <button class="test-btn" onclick="resetItemContent(this)">重置内容</button>
+          </div>
+          <div class="test-item">
+            <input type="checkbox" class="item-checkbox">
+            <div class="test-item-content" data-original-content="双击我进行编辑">双击我进行编辑</div>
+            <button class="test-btn" onclick="resetItemContent(this)">重置内容</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <h3>编辑状态样式验证</h3>
+      <div class="test-controls">
+        <button class="test-btn" onclick="testEditStyles()">测试编辑样式</button>
+        <button class="test-btn" onclick="clearTestStatus()">清除状态</button>
+        <button class="test-btn" onclick="showCSSVariables()">显示CSS变量</button>
+      </div>
+      <div id="test-status" class="test-status info">
+        点击"测试编辑样式"按钮来验证编辑状态样式是否正确应用
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 添加编辑功能
+    document.addEventListener('DOMContentLoaded', function() {
+      // 组名编辑功能
+      const groupNames = document.querySelectorAll('.test-group-name');
+      groupNames.forEach(element => {
+        element.addEventListener('dblclick', function() {
+          startEditingGroup(this);
+        });
+        
+        element.addEventListener('blur', function() {
+          finishEditingGroup(this);
+        });
+        
+        element.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+          }
+        });
+      });
+      
+      // 条目内容编辑功能
+      const itemContents = document.querySelectorAll('.test-item-content');
+      itemContents.forEach(element => {
+        element.addEventListener('dblclick', function() {
+          startEditingItem(this);
+        });
+        
+        element.addEventListener('blur', function() {
+          finishEditingItem(this);
+        });
+        
+        element.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+          }
+        });
+      });
+    });
+    
+    // 开始编辑组名
+    function startEditingGroup(element) {
+      element.contentEditable = true;
+      element.focus();
+      
+      // 选中所有文本
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // 保存原始名称
+      element.dataset.originalName = element.textContent;
+    }
+    
+    // 完成编辑组名
+    function finishEditingGroup(element) {
+      if (!element || !element.contentEditable) return;
+      
+      const newName = element.textContent.trim();
+      element.contentEditable = false;
+      
+      if (newName && newName !== element.dataset.originalName) {
+        showTestStatus(`组名已从 "${element.dataset.originalName}" 更改为 "${newName}"`, 'success');
+        element.dataset.originalName = newName;
+      } else if (newName === element.dataset.originalName) {
+        showTestStatus('组名未发生更改', 'info');
+      } else {
+        element.textContent = element.dataset.originalName;
+        showTestStatus('组名不能为空，已恢复为原始名称', 'error');
+      }
+    }
+    
+    // 开始编辑条目内容
+    function startEditingItem(element) {
+      element.contentEditable = true;
+      element.focus();
+      
+      // 选中所有文本
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // 保存原始内容
+      element.dataset.originalContent = element.textContent;
+    }
+    
+    // 完成编辑条目内容
+    function finishEditingItem(element) {
+      if (!element || !element.contentEditable) return;
+      
+      const newContent = element.textContent.trim();
+      element.contentEditable = false;
+      
+      if (newContent && newContent !== element.dataset.originalContent) {
+        showTestStatus(`条目内容已从 "${element.dataset.originalContent}" 更改为 "${newContent}"`, 'success');
+        element.dataset.originalContent = newContent;
+      } else if (newContent === element.dataset.originalContent) {
+        showTestStatus('条目内容未发生更改', 'info');
+      } else {
+        element.textContent = element.dataset.originalContent;
+        showTestStatus('条目内容不能为空，已恢复为原始名称', 'error');
+      }
+    }
+    
+    // 重置组名
+    function resetGroupName() {
+      const groupName = document.querySelector('.test-group-name');
+      groupName.textContent = groupName.dataset.originalName;
+      showTestStatus('组名已重置', 'info');
+    }
+    
+    // 重置条目内容
+    function resetItemContent(button) {
+      const itemContent = button.previousElementSibling;
+      itemContent.textContent = itemContent.dataset.originalContent;
+      showTestStatus('条目内容已重置', 'info');
+    }
+    
+    // 测试编辑样式
+    function testEditStyles() {
+      const groupName = document.querySelector('.test-group-name');
+      const itemContent = document.querySelector('.test-item-content');
+      
+      // 检查CSS变量是否正确设置
+      const root = document.documentElement;
+      const computedStyle = getComputedStyle(root);
+      
+      const textPrimary = computedStyle.getPropertyValue('--text-primary').trim();
+      const surfaceColor = computedStyle.getPropertyValue('--surface-color').trim();
+      const primaryColor = computedStyle.getPropertyValue('--primary-color').trim();
+      
+      let statusHTML = `
+        <h4>CSS变量检查：</h4>
+        <p>--text-primary: ${textPrimary}</p>
+        <p>--surface-color: ${surfaceColor}</p>
+        <p>--primary-color: ${primaryColor}</p>
+        <h4>编辑状态样式检查：</h4>
+      `;
+      
+      // 检查组名编辑样式
+      statusHTML += '<p>组名编辑状态：';
+      if (groupName.contentEditable) {
+        statusHTML += '<span style="color: green;">✓ 正在编辑</span>';
+      } else {
+        statusHTML += '<span style="color: orange;">○ 未编辑</span>';
+      }
+      statusHTML += '</p>';
+      
+      // 检查条目编辑样式
+      statusHTML += '<p>条目编辑状态：';
+      if (itemContent.contentEditable) {
+        statusHTML += '<span style="color: green;">✓ 正在编辑</span>';
+      } else {
+        statusHTML += '<span style="color: orange;">○ 未编辑</span>';
+      }
+      statusHTML += '</p>';
+      
+      // 检查样式优先级
+      const groupNameStyle = getComputedStyle(groupName);
+      const itemContentStyle = getComputedStyle(itemContent);
+      
+      statusHTML += '<h4>样式优先级检查：</h4>';
+      statusHTML += `<p>组名颜色: ${groupNameStyle.color}</p>`;
+      statusHTML += `<p>组名背景: ${groupNameStyle.backgroundColor}</p>`;
+      statusHTML += `<p>条目颜色: ${itemContentStyle.color}</p>`;
+      statusHTML += `<p>条目背景: ${itemContentStyle.backgroundColor}</p>`;
+      
+      showTestStatus(statusHTML, 'info');
+    }
+    
+    // 清除测试状态
+    function clearTestStatus() {
+      showTestStatus('点击"测试编辑样式"按钮来验证编辑状态样式是否正确应用', 'info');
+    }
+    
+    // 显示CSS变量
+    function showCSSVariables() {
+      const root = document.documentElement;
+      const computedStyle = getComputedStyle(root);
+      
+      let variablesHTML = '<h4>当前CSS变量值：</h4>';
+      variablesHTML += '<p>--text-primary: ' + computedStyle.getPropertyValue('--text-primary').trim() + '</p>';
+      variablesHTML += '<p>--surface-color: ' + computedStyle.getPropertyValue('--surface-color').trim() + '</p>';
+      variablesHTML += '<p>--background-color: ' + computedStyle.getPropertyValue('--background-color').trim() + '</p>';
+      variablesHTML += '<p>--primary-color: ' + computedStyle.getPropertyValue('--primary-color').trim() + '</p>';
+      variablesHTML += '<p>--border-color: ' + computedStyle.getPropertyValue('--border-color').trim() + '</p>';
+      
+      showTestStatus(variablesHTML, 'info');
+    }
+    
+    // 显示测试状态
+    function showTestStatus(message, type = 'info') {
+      const statusElement = document.getElementById('test-status');
+      statusElement.innerHTML = message;
+      statusElement.className = `test-status ${type}`;
+    }
+  </script>
+</body>
+</html>

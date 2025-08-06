@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>层级化条目管理系统</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>层级化条目管理系统</h1>
+    <div class="header-actions">
+      <button id="add-group-btn" class="btn btn-primary">添加组</button>
+      <button id="copy-selected-btn" class="btn btn-secondary" style="display: none;">复制已选择</button>
+      <button id="clear-selection-btn" class="btn btn-secondary" style="display: none;">取消选择</button>
+      <button id="export-btn" class="btn btn-secondary" title="导出数据">导出</button>
+      <button id="import-btn" class="btn btn-secondary" title="导入数据">导入</button>
+      <button id="save-to-file-btn" class="btn btn-secondary" title="保存到文件" style="display: none;">💾</button>
+      <button id="load-from-file-btn" class="btn btn-secondary" title="从文件加载" style="display: none;">📁</button>
+      <button id="data-management-btn" class="btn btn-secondary" title="数据管理" style="display: none;">⚙️</button>
+      <button id="settings-btn" class="btn btn-secondary" title="设置">⚙️</button>
+    </div>
+    <div id="save-status" class="save-status" style="display: none;"></div>
+  </header>
+
+  <main class="app-main">
+    <section id="groups-container" class="groups-container">
+      <!-- 组卡片将动态插入这里 -->
+    </section>
+    
+    <!-- 空状态 -->
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">📝</div>
+      <div class="empty-state-text">还没有任何组</div>
+      <div class="empty-state-subtext">点击"添加组"按钮开始创建您的第一个组</div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2023 层级化条目管理系统</p>
+  </footer>
+
+  <script src="js/utils.js"></script>
+  <script src="js/fileStorageManager.js"></script>
+  <script src="js/dataManager.js"></script>
+  <script src="js/uiManager.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

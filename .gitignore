@@ -1,0 +1,70 @@
+# 忽略所有JSON数据文件
+*.json
+
+# 忽略浏览器生成的文件和缓存
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 忽略编辑器临时文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 忽略日志文件
+*.log
+logs/
+
+# 忽略测试覆盖率报告
+coverage/
+.nyc_output/
+
+# 忽略Node.js相关文件
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 忽略环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 忽略构建产物
+dist/
+build/
+out/
+
+# 忽略临时文件
+*.tmp
+*.temp
+temp/
+tmp/
+
+# 忽略备份文件
+*.bak
+*.backup
+backup/
+
+# 忽略压缩文件
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar.bz2
+
+# 忽略系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 忽略浏览器数据（localStorage数据）
+# 注意：localStorage数据无法直接通过.gitignore忽略，但可以忽略可能导出的JSON文件

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示信息位置测试</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .test-button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .info-btn {
+            background-color: #17a2b8;
+        }
+        
+        .info-btn:hover {
+            background-color: #138496;
+        }
+        
+        .warning-btn {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .warning-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .error-btn {
+            background-color: #dc3545;
+        }
+        
+        .error-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .success-btn {
+            background-color: #28a745;
+        }
+        
+        .success-btn:hover {
+            background-color: #218838;
+        }
+        
+        .progress-btn {
+            background-color: #6f42c1;
+        }
+        
+        .progress-btn:hover {
+            background-color: #5a32a3;
+        }
+        
+        .test-description {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .mobile-test {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        .mobile-test h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        @media (max-width: 768px) {
+            .test-container {
+                padding: 10px;
+            }
+            
+            .test-button {
+                display: block;
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>提示信息位置测试</h1>
+        
+        <div class="test-description">
+            <h3>测试说明</h3>
+            <p>此页面用于测试提示信息从右上角移动到右下角的修改。点击下面的按钮来测试不同类型的提示信息：</p>
+            <ul>
+                <li>成功提示：显示绿色背景的成功消息</li>
+                <li>错误提示：显示红色背景的错误消息</li>
+                <li>警告提示：显示黄色背景的警告消息</li>
+                <li>信息提示：显示蓝色背景的信息消息</li>
+                <li>进度提示：显示带进度条的通知</li>
+            </ul>
+            <p><strong>预期结果：</strong>所有提示信息都应该从右下角出现，而不是右上角。</p>
+        </div>
+        
+        <h2>测试不同类型的提示信息</h2>
+        <button class="test-button success-btn" onclick="showSuccessNotification()">测试成功提示</button>
+        <button class="test-button error-btn" onclick="showErrorNotification()">测试错误提示</button>
+        <button class="test-button warning-btn" onclick="showWarningNotification()">测试警告提示</button>
+        <button class="test-button info-btn" onclick="showInfoNotification()">测试信息提示</button>
+        <button class="test-button progress-btn" onclick="testProgressNotification()">测试进度提示</button>
+        
+        <h2>测试连续提示</h2>
+        <button class="test-button" onclick="showMultipleNotifications()">测试连续提示</button>
+        
+        <h2>测试自动消失</h2>
+        <button class="test-button" onclick="showAutoHideNotification()">测试自动消失（2秒）</button>
+        <button class="test-button" onclick="showAutoHideNotification5()">测试自动消失（5秒）</button>
+        
+        <div class="mobile-test">
+            <h3>移动设备测试</h3>
+            <p>调整浏览器窗口大小到768px以下，或使用开发者工具的移动设备模拟器来测试响应式布局。</p>
+            <button class="test-button" onclick="showMobileNotification()">测试移动设备提示</button>
+        </div>
+        
+        <h2>测试代码</h2>
+        <pre><code>// 测试成功提示
+function showSuccessNotification() {
+    showNotification('操作成功完成！', 'success');
+}
+
+// 测试错误提示
+function showErrorNotification() {
+    showNotification('发生了一个错误！', 'error');
+}
+
+// 测试警告提示
+function showWarningNotification() {
+    showNotification('请注意这是一个警告！', 'warning');
+}
+
+// 测试信息提示
+function showInfoNotification() {
+    showNotification('这是一条信息提示', 'info');
+}
+
+// 测试进度提示
+function testProgressNotification() {
+    const notification = showProgressNotification('正在处理...', 0);
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 10;
+        updateProgressNotification(notification, progress);
+        if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+                showNotification('处理完成！', 'success');
+            }, 500);
+        }
+    }, 200);
+}
+
+// 测试连续提示
+function showMultipleNotifications() {
+    showNotification('第一条消息', 'info');
+    setTimeout(() => showNotification('第二条消息', 'success'), 1000);
+    setTimeout(() => showNotification('第三条消息', 'warning'), 2000);
+    setTimeout(() => showNotification('第四条消息', 'error'), 3000);
+}
+
+// 测试自动消失
+function showAutoHideNotification() {
+    showNotification('这条消息2秒后自动消失', 'info', 2000);
+}
+
+function showAutoHideNotification5() {
+    showNotification('这条消息5秒后自动消失', 'success', 5000);
+}
+
+// 测试移动设备提示
+function showMobileNotification() {
+    showNotification('移动设备测试消息', 'info', 4000);
+}</code></pre>
+    </div>
+
+    <!-- 引入工具函数 -->
+    <script src="js/utils.js"></script>
+    
+    <script>
+        // 测试成功提示
+        function showSuccessNotification() {
+            showNotification('操作成功完成！', 'success');
+        }
+
+        // 测试错误提示
+        function showErrorNotification() {
+            showNotification('发生了一个错误！', 'error');
+        }
+
+        // 测试警告提示
+        function showWarningNotification() {
+            showNotification('请注意这是一个警告！', 'warning');
+        }
+
+        // 测试信息提示
+        function showInfoNotification() {
+            showNotification('这是一条信息提示', 'info');
+        }
+
+        // 测试进度提示
+        function showProgressNotification() {
+            const notification = showProgressNotification('正在处理...', 0);
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                updateProgressNotification(notification, progress);
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        showNotification('处理完成！', 'success');
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // 测试连续提示
+        function showMultipleNotifications() {
+            showNotification('第一条消息', 'info');
+            setTimeout(() => showNotification('第二条消息', 'success'), 1000);
+            setTimeout(() => showNotification('第三条消息', 'warning'), 2000);
+            setTimeout(() => showNotification('第四条消息', 'error'), 3000);
+        }
+
+        // 测试自动消失
+        function showAutoHideNotification() {
+            showNotification('这条消息2秒后自动消失', 'info', 2000);
+        }
+
+        function showAutoHideNotification5() {
+            showNotification('这条消息5秒后自动消失', 'success', 5000);
+        }
+
+        // 测试移动设备提示
+        function showMobileNotification() {
+            showNotification('移动设备测试消息', 'info', 4000);
+        }
+    </script>
+</body>
+</html>

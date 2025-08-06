@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>调试测试页面</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>调试测试页面</h1>
+    <p>这个页面用于测试"新建组"按钮的调试日志。</p>
+    
+    <div class="test-section">
+      <h2>测试说明</h2>
+      <ol>
+        <li>打开浏览器开发者工具（F12）</li>
+        <li>切换到 Console 标签页</li>
+        <li>点击下方的"添加组"按钮</li>
+        <li>观察控制台输出的调试日志</li>
+        <li>检查是否有错误信息</li>
+      </ol>
+    </div>
+    
+    <div class="test-section">
+      <h2>测试按钮</h2>
+      <button id="add-group-btn" class="btn btn-primary">添加组</button>
+    </div>
+    
+    <div class="test-section">
+      <h2>预期日志输出</h2>
+      <pre>
+[DEBUG] DataManager 构造函数开始
+[DEBUG] 加载数据...
+[DEBUG] 加载的数据: [object]
+[DEBUG] 创建 FileStorageManager...
+[DEBUG] 检查文件存储支持...
+[DEBUG] 文件存储支持状态: false
+[DEBUG] DataManager 构造函数完成
+[DEBUG] UIManager.init() 开始初始化
+[DEBUG] 检查文件存储支持...
+[DEBUG] DataManager.checkFileStorageSupport() 开始检查
+[DEBUG] 调用 fileStorageManager.checkAvailability()...
+[DEBUG] 文件存储支持结果: false
+[DEBUG] 文件存储不可用，使用localStorage
+[DEBUG] 文件存储支持: false
+[DEBUG] 渲染所有组...
+[DEBUG] 设置事件监听器...
+[DEBUG] setupEventListeners() 开始设置事件监听器
+[DEBUG] 添加组按钮元素: [button element]
+[DEBUG] 绑定添加组按钮点击事件
+[DEBUG] setupEventListeners() 事件监听器设置完成
+[DEBUG] 更新统计信息...
+[DEBUG] UIManager.init() 初始化完成
+[DEBUG] App.init() 开始初始化
+[DEBUG] 检查文件存储支持...
+[DEBUG] DataManager.checkFileStorageSupport() 开始检查
+[DEBUG] 调用 fileStorageManager.checkAvailability()...
+[DEBUG] 文件存储支持结果: false
+[DEBUG] 文件存储不可用，使用localStorage
+[DEBUG] 文件存储支持: false
+[DEBUG] 设置全局事件监听器...
+[DEBUG] 恢复数据...
+[DEBUG] 层级化条目管理系统初始化完成
+      </pre>
+    </div>
+    
+    <div class="test-section">
+      <h2>点击按钮后的预期日志</h2>
+      <pre>
+[DEBUG] 添加组按钮被点击
+[DEBUG] handleAddGroup() 方法被调用
+[DEBUG] 用户输入的组名称: [输入的组名]
+[DEBUG] 调用 dataManager.addGroup()...
+[DEBUG] DataManager.addGroup() 被调用，参数: [输入的组名]
+[DEBUG] 内容验证结果: [validation object]
+[DEBUG] 组名是否已存在: false
+[DEBUG] 创建新组...
+[DEBUG] 新组对象: [group object]
+[DEBUG] 添加组到数据中...
+[DEBUG] 保存数据...
+[DEBUG] 组添加成功，返回: [group object]
+[DEBUG] dataManager.addGroup() 返回: [group object]
+[DEBUG] 渲染新组...
+[DEBUG] 组添加成功
+      </pre>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/fileStorageManager.js"></script>
+  <script src="js/dataManager.js"></script>
+  <script src="js/uiManager.js"></script>
+  <script src="js/app.js"></script>
+  
+  <script>
+    // 简化的测试脚本
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[DEBUG] DOM内容加载完成');
+      
+      // 手动测试按钮点击
+      const testButton = document.getElementById('add-group-btn');
+      if (testButton) {
+        console.log('[DEBUG] 找到测试按钮，绑定点击事件');
+        testButton.addEventListener('click', function() {
+          console.log('[DEBUG] 测试按钮被点击');
+          // 模拟UIManager的handleAddGroup方法
+          if (window.app && window.app.uiManager) {
+            window.app.uiManager.handleAddGroup();
+          } else {
+            console.error('[DEBUG] app或uiManager未初始化');
+          }
+        });
+      } else {
+        console.error('[DEBUG] 未找到测试按钮');
+      }
+    });
+  </script>
+</body>
+</html>
