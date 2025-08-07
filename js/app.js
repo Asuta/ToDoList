@@ -105,6 +105,22 @@ class App {
       });
     }
 
+    // 导出按钮事件
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        this.uiManager.exportDataUI();
+      });
+    }
+
+    // 导入按钮事件
+    const importBtn = document.getElementById('import-btn');
+    if (importBtn) {
+      importBtn.addEventListener('click', () => {
+        this.handleImportData();
+      });
+    }
+
     // 添加组按钮事件已在UIManager中处理，这里移除重复绑定
 
     // 键盘快捷键
