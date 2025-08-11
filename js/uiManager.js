@@ -127,6 +127,13 @@ class UIManager {
   handleGroupContainerClick(e) {
     const target = e.target;
     
+    // 全选按钮
+    if (target.classList.contains('select-all-btn')) {
+      const groupId = target.closest('.group-card').dataset.groupId;
+      this.handleSelectAllInGroup(groupId);
+      return;
+    }
+
     // 添加条目按钮
     if (target.classList.contains('add-item-btn')) {
       const groupId = target.closest('.group-card').dataset.groupId;
@@ -263,6 +270,7 @@ class UIManager {
       <div class="group-header">
         <h2 class="group-name" data-original-name="${group.name}" draggable="true">${group.name}</h2>
         <div class="group-actions">
+          <button class="btn-icon select-all-btn" title="全选该组">✓</button>
           <button class="btn-icon add-item-btn" title="添加条目">+</button>
           <button class="btn-icon delete-group-btn" title="删除组">×</button>
         </div>
@@ -394,6 +402,62 @@ class UIManager {
       }, 300);
       showNotification('条目删除成功', 'success');
     }
+  }
+
+  /**
+   * 处理全选组内条目
+   * @param {string} groupId - 组ID
+   */
+  handleSelectAllInGroup(groupId) {
+    const group = this.dataManager.getGroup(groupId);
+    if (!group || group.items.length === 0) {
+      showNotification('该组没有条目', 'warning');
+      return;
+    }
+
+    const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+    const itemCards = groupCard.querySelectorAll('.item-card');
+    const selectAllBtn = groupCard.querySelector('.select-all-btn');
+    
+    // 检查是否所有条目都已选中
+    const allSelected = Array.from(itemCards).every(itemCard => {
+      const checkbox = itemCard.querySelector('.item-checkbox');
+      return checkbox && checkbox.checked;
+    });
+
+    // 如果全部已选中，则取消全选；否则全选
+    if (allSelected) {
+      // 取消全选
+      group.items.forEach(item => {
+        this.dataManager.updateItemChecked(groupId, item.id, false);
+        const itemCard = groupCard.querySelector(`[data-item-id="${item.id}"]`);
+        if (itemCard) {
+          itemCard.classList.remove('selected');
+          const checkbox = itemCard.querySelector('.item-checkbox');
+          if (checkbox) checkbox.checked = false;
+        }
+      });
+      selectAllBtn.style.backgroundColor = '';
+      selectAllBtn.style.color = '';
+      showNotification(`已取消选择组 "${group.name}" 的所有条目`, 'success');
+    } else {
+      // 全选
+      group.items.forEach(item => {
+        this.dataManager.updateItemChecked(groupId, item.id, true);
+        const itemCard = groupCard.querySelector(`[data-item-id="${item.id}"]`);
+        if (itemCard) {
+          itemCard.classList.add('selected');
+          const checkbox = itemCard.querySelector('.item-checkbox');
+          if (checkbox) checkbox.checked = true;
+        }
+      });
+      selectAllBtn.style.backgroundColor = 'var(--success-color)';
+      selectAllBtn.style.color = 'white';
+      showNotification(`已选择组 "${group.name}" 的所有条目`, 'success');
+    }
+
+    // 更新复制按钮状态
+    this.updateCopyButtonState();
   }
 
   /**
