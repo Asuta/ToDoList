@@ -187,6 +187,7 @@ class UIManager {
       this.dataManager.updateItemChecked(groupId, itemId, checked);
       this.updateItemSelection(itemCard, checked);
       this.updateCopyButtonState();
+      this.updateSelectAllButtonState(groupId);
       return;
     }
   }
@@ -461,6 +462,56 @@ class UIManager {
   }
 
   /**
+   * 重置所有组全选按钮状态
+   */
+  resetAllSelectAllButtons() {
+    const selectAllButtons = document.querySelectorAll('.select-all-btn');
+    selectAllButtons.forEach(button => {
+      button.style.backgroundColor = '';
+      button.style.color = '';
+      button.classList.remove('selected');
+    });
+  }
+
+  /**
+   * 更新单个组全选按钮状态
+   * @param {string} groupId - 组ID
+   */
+  updateSelectAllButtonState(groupId) {
+    const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+    if (!groupCard) return;
+
+    const group = this.dataManager.getGroup(groupId);
+    if (!group || group.items.length === 0) return;
+
+    const itemCards = groupCard.querySelectorAll('.item-card');
+    const selectAllBtn = groupCard.querySelector('.select-all-btn');
+    
+    // 检查是否所有条目都已选中
+    const allSelected = Array.from(itemCards).every(itemCard => {
+      const checkbox = itemCard.querySelector('.item-checkbox');
+      return checkbox && checkbox.checked;
+    });
+
+    // 检查是否有任何条目被选中
+    const hasSelected = Array.from(itemCards).some(itemCard => {
+      const checkbox = itemCard.querySelector('.item-checkbox');
+      return checkbox && checkbox.checked;
+    });
+
+    // 更新按钮状态
+    if (allSelected && group.items.length > 0) {
+      selectAllBtn.style.backgroundColor = 'var(--success-color)';
+      selectAllBtn.style.color = 'white';
+      selectAllBtn.classList.add('selected');
+    } else {
+      selectAllBtn.style.backgroundColor = '';
+      selectAllBtn.style.color = '';
+      selectAllBtn.classList.remove('selected');
+    }
+  }
+
+  /**
    * 处理复制选中
    */
   handleCopySelected() {
@@ -576,6 +627,9 @@ class UIManager {
     
     // 更新UI
     this.updateAllSelectionStates();
+    
+    // 重置所有组全选按钮状态
+    this.resetAllSelectAllButtons();
     
     // 更新按钮状态
     this.updateCopyButtonState();
