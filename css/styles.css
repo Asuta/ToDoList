@@ -136,6 +136,22 @@ body {
   transform: scale(1.1);
 }
 
+/* 全选按钮样式 */
+.select-all-btn {
+  background-color: var(--surface-color);
+  color: var(--text-secondary);
+}
+
+.select-all-btn:hover {
+  background-color: var(--border-color);
+  transform: scale(1.1);
+}
+
+.select-all-btn.selected {
+  background-color: var(--success-color);
+  color: white;
+}
+
 /* 页面布局 */
 .app-header {
   background-color: var(--surface-color);
