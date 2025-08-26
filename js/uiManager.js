@@ -885,17 +885,40 @@ class UIManager {
       this.draggedType = 'group';
       this.draggedElement = target.closest('.group-card');
       this.draggedId = this.draggedElement.dataset.groupId;
+      this.draggedSourceGroupId = this.draggedId;
     } else if (target.classList.contains('item-card')) {
       this.draggedType = 'item';
       this.draggedElement = target;
       this.draggedId = target.dataset.itemId;
       this.draggedIndex = Array.from(target.parentNode.children).indexOf(target);
+      this.draggedSourceGroupId = target.closest('.group-card').dataset.groupId;
     }
     
     if (this.draggedElement) {
-      this.draggedElement.style.opacity = '0.5';
+      // 设置拖拽效果
+      this.draggedElement.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/html', this.draggedElement.innerHTML);
+      
+      // 设置拖拽图像
+      const dragImage = this.draggedElement.cloneNode(true);
+      dragImage.style.opacity = '0.8';
+      dragImage.style.position = 'absolute';
+      dragImage.style.pointerEvents = 'none';
+      dragImage.style.zIndex = '9999';
+      document.body.appendChild(dragImage);
+      
+      // 设置拖拽图像偏移
+      const rect = this.draggedElement.getBoundingClientRect();
+      e.dataTransfer.setDragImage(dragImage, e.offsetX, e.offsetY);
+      
+      // 延迟移除克隆元素
+      setTimeout(() => {
+        document.body.removeChild(dragImage);
+      }, 0);
+      
+      // 添加拖拽提示
+      this.showDragHint();
     }
   }
 
@@ -910,11 +933,54 @@ class UIManager {
     
     e.dataTransfer.dropEffect = 'move';
     
-    const afterElement = this.getDragAfterElement(this.groupsContainer, e.clientY);
-    if (afterElement == null) {
-      this.groupsContainer.appendChild(this.draggedElement);
-    } else {
-      this.groupsContainer.insertBefore(this.draggedElement, afterElement);
+    if (this.draggedType === 'group') {
+      // 组拖拽逻辑
+      const afterElement = this.getDragAfterElement(this.groupsContainer, e.clientY);
+      if (afterElement == null) {
+        this.groupsContainer.appendChild(this.draggedElement);
+      } else {
+        this.groupsContainer.insertBefore(this.draggedElement, afterElement);
+      }
+    } else if (this.draggedType === 'item') {
+      // 条目拖拽逻辑 - 支持跨组
+      const target = e.target.closest('.group-items, .group-card');
+      
+      if (target) {
+        // 清除之前的拖拽状态
+        document.querySelectorAll('.drag-over').forEach(el => {
+          el.classList.remove('drag-over');
+        });
+        
+        if (target.classList.contains('group-items')) {
+          // 拖拽到组内条目区域
+          const groupItems = target;
+          const afterElement = this.getItemDragAfterElement(groupItems, e.clientY);
+          
+          if (afterElement == null) {
+            groupItems.appendChild(this.draggedElement);
+          } else {
+            groupItems.insertBefore(this.draggedElement, afterElement);
+          }
+          
+          groupItems.classList.add('drag-over');
+        } else if (target.classList.contains('group-card')) {
+          // 拖拽到组卡片，添加到该组的条目区域
+          const groupCard = target;
+          const groupItems = groupCard.querySelector('.group-items');
+          
+          if (groupItems) {
+            const afterElement = this.getItemDragAfterElement(groupItems, e.clientY);
+            
+            if (afterElement == null) {
+              groupItems.appendChild(this.draggedElement);
+            } else {
+              groupItems.insertBefore(this.draggedElement, afterElement);
+            }
+            
+            groupCard.classList.add('drag-over');
+          }
+        }
+      }
     }
     
     return false;
@@ -925,9 +991,13 @@ class UIManager {
    * @param {Event} e - 拖拽事件
    */
   handleDragEnter(e) {
-    const target = e.target.closest('.group-card, .item-card');
+    const target = e.target.closest('.group-card, .group-items, .item-card');
     if (target && target !== this.draggedElement) {
-      target.style.backgroundColor = '#e0f2fe';
+      if (target.classList.contains('group-card') || target.classList.contains('group-items')) {
+        target.classList.add('drag-over');
+      } else if (target.classList.contains('item-card')) {
+        target.style.backgroundColor = '#e0f2fe';
+      }
     }
   }
 
@@ -936,8 +1006,9 @@ class UIManager {
    * @param {Event} e - 拖拽事件
    */
   handleDragLeave(e) {
-    const target = e.target.closest('.group-card, .item-card');
+    const target = e.target.closest('.group-card, .group-items, .item-card');
     if (target) {
+      target.classList.remove('drag-over');
       target.style.backgroundColor = '';
     }
   }
@@ -954,8 +1025,11 @@ class UIManager {
     const target = e.target.closest('.group-card, .group-items');
     if (!target) return;
     
-    // 重置所有元素的背景色
-    document.querySelectorAll('.group-card, .item-card').forEach(el => {
+    // 重置所有元素的拖拽状态
+    document.querySelectorAll('.drag-over').forEach(el => {
+      el.classList.remove('drag-over');
+    });
+    document.querySelectorAll('.item-card').forEach(el => {
       el.style.backgroundColor = '';
     });
     
@@ -963,7 +1037,7 @@ class UIManager {
     if (this.draggedType === 'group') {
       this.handleGroupSort();
     }
-    // 处理条目排序
+    // 处理条目排序（包括跨组）
     else if (this.draggedType === 'item') {
       this.handleItemSort(target);
     }
@@ -976,17 +1050,56 @@ class UIManager {
    * @param {Event} e - 拖拽事件
    */
   handleDragEnd(e) {
-    // 重置所有元素的样式
-    document.querySelectorAll('.group-card, .item-card').forEach(el => {
-      el.style.opacity = '';
-      el.style.backgroundColor = '';
-    });
+    // 隐藏拖拽提示
+    this.hideDragHint();
     
+    // 使用setTimeout确保样式重置在下一帧执行，避免闪烁
+    setTimeout(() => {
+      // 重置所有元素的样式
+      document.querySelectorAll('.dragging').forEach(el => {
+        el.classList.remove('dragging');
+      });
+      document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+      });
+      document.querySelectorAll('.item-card').forEach(el => {
+        el.style.backgroundColor = '';
+      });
+    }, 0);
+    
+    // 重置拖拽状态
     this.draggedElement = null;
     this.draggedType = null;
     this.draggedId = null;
     this.draggedIndex = null;
+    this.draggedSourceGroupId = null;
     this.placeholderElement = null;
+  }
+
+  /**
+   * 显示拖拽提示
+   */
+  showDragHint() {
+    let hint = document.querySelector('.drag-hint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.className = 'drag-hint';
+      document.body.appendChild(hint);
+    }
+    
+    const message = this.draggedType === 'group' ? '移动组位置' : '移动条目位置';
+    hint.textContent = message;
+    hint.classList.add('show');
+  }
+
+  /**
+   * 隐藏拖拽提示
+   */
+  hideDragHint() {
+    const hint = document.querySelector('.drag-hint');
+    if (hint) {
+      hint.classList.remove('show');
+    }
   }
 
   /**
@@ -997,6 +1110,27 @@ class UIManager {
    */
   getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.group-card:not(.dragging), .item-card:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+
+  /**
+   * 获取条目拖拽后的位置
+   * @param {HTMLElement} container - 容器元素
+   * @param {number} y - 鼠标Y坐标
+   * @returns {HTMLElement} 拖拽后的元素
+   */
+  getItemDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.item-card:not(.dragging)')];
     
     return draggableElements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
@@ -1039,26 +1173,54 @@ class UIManager {
     const groupCard = target.closest('.group-card');
     if (!groupCard) return;
     
-    const groupId = groupCard.dataset.groupId;
+    const targetGroupId = groupCard.dataset.groupId;
     const itemCards = [...groupCard.querySelectorAll('.item-card')];
     const newOrder = itemCards.map(card => card.dataset.itemId);
     
-    // 重新排序数据
-    const group = this.dataManager.getGroup(groupId);
-    if (!group) return;
+    // 检查是否是跨组拖拽
+    let isCrossGroup = false;
+    let successMessage = '';
     
-    const reorderedItems = [];
-    newOrder.forEach(itemId => {
-      const item = group.items.find(item => item.id === itemId);
-      if (item) {
-        reorderedItems.push(item);
+    if (this.draggedSourceGroupId && this.draggedSourceGroupId !== targetGroupId) {
+      // 跨组拖拽
+      isCrossGroup = true;
+      successMessage = `条目已移动到 "${this.dataManager.getGroup(targetGroupId).name}"`;
+      
+      // 从源组删除条目
+      const sourceGroup = this.dataManager.getGroup(this.draggedSourceGroupId);
+      if (sourceGroup) {
+        const itemIndex = sourceGroup.items.findIndex(item => item.id === this.draggedId);
+        if (itemIndex !== -1) {
+          const [movedItem] = sourceGroup.items.splice(itemIndex, 1);
+          // 添加到目标组
+          const targetGroup = this.dataManager.getGroup(targetGroupId);
+          if (targetGroup) {
+            targetGroup.items.push(movedItem);
+            targetGroup.updatedAt = new Date().toISOString();
+            successMessage = `条目已从 "${sourceGroup.name}" 移动到 "${targetGroup.name}"`;
+          }
+        }
       }
-    });
+    } else {
+      // 同组内排序
+      const group = this.dataManager.getGroup(targetGroupId);
+      if (!group) return;
+      
+      const reorderedItems = [];
+      newOrder.forEach(itemId => {
+        const item = group.items.find(item => item.id === itemId);
+        if (item) {
+          reorderedItems.push(item);
+        }
+      });
+      
+      group.items = reorderedItems;
+      successMessage = '条目排序已更新';
+    }
     
-    group.items = reorderedItems;
-    group.updatedAt = new Date().toISOString();
+    // 保存数据并显示成功消息
     this.dataManager.saveData();
-    showNotification('条目排序已更新', 'success');
+    showNotification(successMessage, 'success');
   }
 
   /**

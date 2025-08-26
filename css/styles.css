@@ -858,14 +858,26 @@ body {
 
 /* 拖拽样式 */
 .dragging {
-  opacity: 0.5;
-  transform: rotate(5deg);
+  opacity: 0.6;
+  transform: rotate(3deg) scale(1.05);
   z-index: 1000;
+  box-shadow: var(--shadow-xl);
+  border: 2px solid var(--primary-color);
+  background-color: #dbeafe !important;
 }
 
 .drag-over {
   border: 2px dashed var(--primary-color);
   background-color: #dbeafe;
+  transform: scale(1.02);
+}
+
+.drag-over .group-items {
+  border: 2px dashed var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: 0.5rem;
+  background-color: rgba(37, 99, 235, 0.05);
+  min-height: 80px;
 }
 
 .drag-placeholder {
@@ -879,6 +891,91 @@ body {
   justify-content: center;
   color: var(--primary-color);
   font-weight: 500;
+  animation: pulse 1.5s infinite;
+}
+
+/* 拖拽时的光标样式 */
+.dragging * {
+  cursor: grabbing !important;
+}
+
+/* 组卡片拖拽状态 */
+.group-card.drag-over {
+  border: 2px solid var(--primary-color);
+  background-color: #f0f9ff;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 条目卡片拖拽状态 */
+.item-card.drag-over {
+  border: 2px solid var(--primary-color);
+  background-color: #dbeafe;
+  transform: scale(1.02);
+}
+
+/* 拖拽提示 */
+.drag-hint {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  z-index: 2000;
+  box-shadow: var(--shadow-xl);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drag-hint.show {
+  opacity: 1;
+}
+
+/* 拖拽动画效果 */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+/* 拖拽时的平滑过渡 */
+.draggable {
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 组和条目的拖拽状态优化 */
+.group-card.dragging {
+  cursor: grabbing;
+}
+
+.item-card.dragging {
+  cursor: grabbing;
+}
+
+/* 拖拽时的拖尾效果 */
+.drag-trail {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.6;
+  z-index: 999;
 }
 
 /* 编辑状态样式 */
