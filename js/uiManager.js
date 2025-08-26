@@ -1109,7 +1109,7 @@ class UIManager {
    * @returns {HTMLElement} 拖拽后的元素
    */
   getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.group-card:not(.dragging), .item-card:not(.dragging)')];
+    const draggableElements = [...container.querySelectorAll('.group-card:not(.dragging)')];
     
     return draggableElements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
@@ -1161,6 +1161,12 @@ class UIManager {
     });
     
     this.dataManager.data.groups = reorderedGroups;
+    
+    // 更新时间戳
+    reorderedGroups.forEach(group => {
+      group.updatedAt = new Date().toISOString();
+    });
+    
     this.dataManager.saveData();
     showNotification('组排序已更新', 'success');
   }
