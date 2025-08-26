@@ -858,12 +858,13 @@ body {
 
 /* 拖拽样式 */
 .dragging {
-  opacity: 0.6;
-  transform: rotate(3deg) scale(1.05);
+  opacity: 0.5;
+  transform: scale(0.98);
   z-index: 1000;
-  box-shadow: var(--shadow-xl);
+  box-shadow: var(--shadow-lg);
   border: 2px solid var(--primary-color);
-  background-color: #dbeafe !important;
+  background-color: #f0f9ff !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
 }
 
 .drag-over {
@@ -891,7 +892,33 @@ body {
   justify-content: center;
   color: var(--primary-color);
   font-weight: 500;
-  animation: pulse 1.5s infinite;
+  animation: placeholderPulse 2s ease-in-out infinite;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.drag-placeholder::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.2), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+.drag-placeholder.group-placeholder {
+  height: 120px;
+  margin: 1rem 0;
+  font-size: 1.1em;
+}
+
+.drag-placeholder.item-placeholder {
+  height: 60px;
+  margin: 0.5rem 0;
+  font-size: 0.9em;
 }
 
 /* 拖拽时的光标样式 */
@@ -949,6 +976,32 @@ body {
   100% {
     opacity: 0.6;
     transform: scale(1);
+  }
+}
+
+/* 占位符动画效果 */
+@keyframes placeholderPulse {
+  0% {
+    opacity: 0.7;
+    border-color: var(--primary-color);
+  }
+  50% {
+    opacity: 1;
+    border-color: rgba(37, 99, 235, 0.8);
+  }
+  100% {
+    opacity: 0.7;
+    border-color: var(--primary-color);
+  }
+}
+
+/* 占位符闪光效果 */
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
 

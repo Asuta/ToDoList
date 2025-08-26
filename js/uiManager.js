@@ -879,7 +879,7 @@ class UIManager {
    */
   handleDragStart(e) {
     const target = e.target;
-    
+
     // 确定拖拽类型和元素
     if (target.classList.contains('group-name')) {
       this.draggedType = 'group';
@@ -893,32 +893,46 @@ class UIManager {
       this.draggedIndex = Array.from(target.parentNode.children).indexOf(target);
       this.draggedSourceGroupId = target.closest('.group-card').dataset.groupId;
     }
-    
+
     if (this.draggedElement) {
       // 设置拖拽效果
       this.draggedElement.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/html', this.draggedElement.innerHTML);
-      
-      // 设置拖拽图像
+
+      // 创建自定义拖拽图像
       const dragImage = this.draggedElement.cloneNode(true);
-      dragImage.style.opacity = '0.8';
+      dragImage.classList.remove('dragging');
+      dragImage.style.opacity = '0.9';
+      dragImage.style.transform = 'rotate(2deg) scale(1.02)';
       dragImage.style.position = 'absolute';
+      dragImage.style.top = '-1000px';
+      dragImage.style.left = '-1000px';
       dragImage.style.pointerEvents = 'none';
       dragImage.style.zIndex = '9999';
       document.body.appendChild(dragImage);
-      
-      // 设置拖拽图像偏移
-      const rect = this.draggedElement.getBoundingClientRect();
+
+      // 设置拖拽图像
       e.dataTransfer.setDragImage(dragImage, e.offsetX, e.offsetY);
-      
-      // 延迟移除克隆元素
-      setTimeout(() => {
-        document.body.removeChild(dragImage);
-      }, 0);
-      
+
+      // 延迟处理：移除临时图像并设置原始元素样式
+      requestAnimationFrame(() => {
+        if (document.body.contains(dragImage)) {
+          document.body.removeChild(dragImage);
+        }
+        // 延迟隐藏原始元素，确保拖拽已经开始
+        setTimeout(() => {
+          if (this.draggedElement && this.draggedElement.classList.contains('dragging')) {
+            this.draggedElement.style.visibility = 'hidden';
+          }
+        }, 50);
+      });
+
       // 添加拖拽提示
       this.showDragHint();
+
+      // 初始化节流器
+      this.dragOverThrottle = null;
     }
   }
 
@@ -930,60 +944,108 @@ class UIManager {
     if (e.preventDefault) {
       e.preventDefault();
     }
-    
+
     e.dataTransfer.dropEffect = 'move';
-    
+
+    // 使用节流来减少频繁的DOM操作
+    if (this.dragOverThrottle) {
+      clearTimeout(this.dragOverThrottle);
+    }
+
+    this.dragOverThrottle = setTimeout(() => {
+      this.updateDragPosition(e);
+    }, 16); // 约60fps的更新频率
+
+    return false;
+  }
+
+  /**
+   * 更新拖拽位置（使用占位符避免闪烁）
+   * @param {Event} e - 拖拽事件
+   */
+  updateDragPosition(e) {
     if (this.draggedType === 'group') {
-      // 组拖拽逻辑
-      const afterElement = this.getDragAfterElement(this.groupsContainer, e.clientY);
-      if (afterElement == null) {
-        this.groupsContainer.appendChild(this.draggedElement);
-      } else {
-        this.groupsContainer.insertBefore(this.draggedElement, afterElement);
-      }
+      this.updateGroupDragPosition(e);
     } else if (this.draggedType === 'item') {
-      // 条目拖拽逻辑 - 支持跨组
-      const target = e.target.closest('.group-items, .group-card');
-      
-      if (target) {
-        // 清除之前的拖拽状态
-        document.querySelectorAll('.drag-over').forEach(el => {
-          el.classList.remove('drag-over');
-        });
-        
-        if (target.classList.contains('group-items')) {
-          // 拖拽到组内条目区域
-          const groupItems = target;
-          const afterElement = this.getItemDragAfterElement(groupItems, e.clientY);
-          
-          if (afterElement == null) {
-            groupItems.appendChild(this.draggedElement);
-          } else {
-            groupItems.insertBefore(this.draggedElement, afterElement);
-          }
-          
-          groupItems.classList.add('drag-over');
-        } else if (target.classList.contains('group-card')) {
-          // 拖拽到组卡片，添加到该组的条目区域
-          const groupCard = target;
-          const groupItems = groupCard.querySelector('.group-items');
-          
-          if (groupItems) {
-            const afterElement = this.getItemDragAfterElement(groupItems, e.clientY);
-            
-            if (afterElement == null) {
-              groupItems.appendChild(this.draggedElement);
-            } else {
-              groupItems.insertBefore(this.draggedElement, afterElement);
-            }
-            
-            groupCard.classList.add('drag-over');
-          }
+      this.updateItemDragPosition(e);
+    }
+  }
+
+  /**
+   * 更新组拖拽位置
+   * @param {Event} e - 拖拽事件
+   */
+  updateGroupDragPosition(e) {
+    const afterElement = this.getDragAfterElement(this.groupsContainer, e.clientY);
+
+    // 创建或更新占位符
+    if (!this.placeholderElement) {
+      this.placeholderElement = this.createGroupPlaceholder();
+    }
+
+    // 移除占位符的当前位置
+    if (this.placeholderElement.parentNode) {
+      this.placeholderElement.parentNode.removeChild(this.placeholderElement);
+    }
+
+    // 插入占位符到新位置
+    if (afterElement == null) {
+      this.groupsContainer.appendChild(this.placeholderElement);
+    } else {
+      this.groupsContainer.insertBefore(this.placeholderElement, afterElement);
+    }
+  }
+
+  /**
+   * 更新条目拖拽位置
+   * @param {Event} e - 拖拽事件
+   */
+  updateItemDragPosition(e) {
+    const target = e.target.closest('.group-items, .group-card');
+
+    if (target) {
+      // 清除之前的拖拽状态
+      document.querySelectorAll('.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+      });
+
+      // 创建或更新占位符
+      if (!this.placeholderElement) {
+        this.placeholderElement = this.createItemPlaceholder();
+      }
+
+      // 移除占位符的当前位置
+      if (this.placeholderElement.parentNode) {
+        this.placeholderElement.parentNode.removeChild(this.placeholderElement);
+      }
+
+      let groupItems = null;
+      let groupCard = null;
+
+      if (target.classList.contains('group-items')) {
+        groupItems = target;
+        groupCard = target.closest('.group-card');
+      } else if (target.classList.contains('group-card')) {
+        groupCard = target;
+        groupItems = groupCard.querySelector('.group-items');
+      }
+
+      if (groupItems) {
+        const afterElement = this.getItemDragAfterElement(groupItems, e.clientY);
+
+        // 插入占位符到新位置
+        if (afterElement == null) {
+          groupItems.appendChild(this.placeholderElement);
+        } else {
+          groupItems.insertBefore(this.placeholderElement, afterElement);
+        }
+
+        // 添加视觉反馈
+        if (groupCard) {
+          groupCard.classList.add('drag-over');
         }
       }
     }
-    
-    return false;
   }
 
   /**
@@ -1021,10 +1083,28 @@ class UIManager {
     if (e.stopPropagation) {
       e.stopPropagation();
     }
-    
-    const target = e.target.closest('.group-card, .group-items');
-    if (!target) return;
-    
+
+    // 如果有占位符，将拖拽元素放置到占位符位置
+    if (this.placeholderElement && this.placeholderElement.parentNode) {
+      const parent = this.placeholderElement.parentNode;
+      const nextSibling = this.placeholderElement.nextSibling;
+
+      // 移除占位符
+      parent.removeChild(this.placeholderElement);
+
+      // 恢复拖拽元素的可见性
+      if (this.draggedElement) {
+        this.draggedElement.style.visibility = 'visible';
+      }
+
+      // 将拖拽元素插入到占位符的位置
+      if (nextSibling) {
+        parent.insertBefore(this.draggedElement, nextSibling);
+      } else {
+        parent.appendChild(this.draggedElement);
+      }
+    }
+
     // 重置所有元素的拖拽状态
     document.querySelectorAll('.drag-over').forEach(el => {
       el.classList.remove('drag-over');
@@ -1032,16 +1112,14 @@ class UIManager {
     document.querySelectorAll('.item-card').forEach(el => {
       el.style.backgroundColor = '';
     });
-    
-    // 处理组排序
+
+    // 处理数据排序
     if (this.draggedType === 'group') {
       this.handleGroupSort();
+    } else if (this.draggedType === 'item') {
+      this.handleItemSortFromPlaceholder();
     }
-    // 处理条目排序（包括跨组）
-    else if (this.draggedType === 'item') {
-      this.handleItemSort(target);
-    }
-    
+
     return false;
   }
 
@@ -1050,14 +1128,31 @@ class UIManager {
    * @param {Event} e - 拖拽事件
    */
   handleDragEnd(e) {
+    // 清理节流器
+    if (this.dragOverThrottle) {
+      clearTimeout(this.dragOverThrottle);
+      this.dragOverThrottle = null;
+    }
+
     // 隐藏拖拽提示
     this.hideDragHint();
-    
+
+    // 移除占位符
+    if (this.placeholderElement && this.placeholderElement.parentNode) {
+      this.placeholderElement.parentNode.removeChild(this.placeholderElement);
+    }
+
+    // 恢复原始元素的可见性
+    if (this.draggedElement) {
+      this.draggedElement.style.visibility = 'visible';
+    }
+
     // 使用setTimeout确保样式重置在下一帧执行，避免闪烁
     setTimeout(() => {
       // 重置所有元素的样式
       document.querySelectorAll('.dragging').forEach(el => {
         el.classList.remove('dragging');
+        el.style.visibility = '';
       });
       document.querySelectorAll('.drag-over').forEach(el => {
         el.classList.remove('drag-over');
@@ -1066,7 +1161,7 @@ class UIManager {
         el.style.backgroundColor = '';
       });
     }, 0);
-    
+
     // 重置拖拽状态
     this.draggedElement = null;
     this.draggedType = null;
@@ -1100,6 +1195,32 @@ class UIManager {
     if (hint) {
       hint.classList.remove('show');
     }
+  }
+
+  /**
+   * 创建组占位符
+   * @returns {HTMLElement} 占位符元素
+   */
+  createGroupPlaceholder() {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'drag-placeholder group-placeholder';
+    placeholder.innerHTML = '<span>放置组到此处</span>';
+    placeholder.style.height = '120px';
+    placeholder.style.margin = '1rem 0';
+    return placeholder;
+  }
+
+  /**
+   * 创建条目占位符
+   * @returns {HTMLElement} 占位符元素
+   */
+  createItemPlaceholder() {
+    const placeholder = document.createElement('div');
+    placeholder.className = 'drag-placeholder item-placeholder';
+    placeholder.innerHTML = '<span>放置条目到此处</span>';
+    placeholder.style.height = '60px';
+    placeholder.style.margin = '0.5rem 0';
+    return placeholder;
   }
 
   /**
@@ -1172,26 +1293,25 @@ class UIManager {
   }
 
   /**
-   * 处理条目排序
-   * @param {HTMLElement} target - 目标元素
+   * 处理基于占位符位置的条目排序
    */
-  handleItemSort(target) {
-    const groupCard = target.closest('.group-card');
+  handleItemSortFromPlaceholder() {
+    if (!this.draggedElement) return;
+
+    const groupCard = this.draggedElement.closest('.group-card');
     if (!groupCard) return;
-    
+
     const targetGroupId = groupCard.dataset.groupId;
     const itemCards = [...groupCard.querySelectorAll('.item-card')];
     const newOrder = itemCards.map(card => card.dataset.itemId);
-    
+
     // 检查是否是跨组拖拽
-    let isCrossGroup = false;
     let successMessage = '';
-    
+
     if (this.draggedSourceGroupId && this.draggedSourceGroupId !== targetGroupId) {
       // 跨组拖拽
-      isCrossGroup = true;
       successMessage = `条目已移动到 "${this.dataManager.getGroup(targetGroupId).name}"`;
-      
+
       // 从源组删除条目
       const sourceGroup = this.dataManager.getGroup(this.draggedSourceGroupId);
       if (sourceGroup) {
@@ -1201,8 +1321,22 @@ class UIManager {
           // 添加到目标组
           const targetGroup = this.dataManager.getGroup(targetGroupId);
           if (targetGroup) {
-            targetGroup.items.push(movedItem);
+            // 根据新位置重新排序
+            const reorderedItems = [];
+            newOrder.forEach(itemId => {
+              if (itemId === this.draggedId) {
+                reorderedItems.push(movedItem);
+              } else {
+                const item = targetGroup.items.find(item => item.id === itemId);
+                if (item) {
+                  reorderedItems.push(item);
+                }
+              }
+            });
+
+            targetGroup.items = reorderedItems;
             targetGroup.updatedAt = new Date().toISOString();
+            sourceGroup.updatedAt = new Date().toISOString();
             successMessage = `条目已从 "${sourceGroup.name}" 移动到 "${targetGroup.name}"`;
           }
         }
@@ -1211,7 +1345,7 @@ class UIManager {
       // 同组内排序
       const group = this.dataManager.getGroup(targetGroupId);
       if (!group) return;
-      
+
       const reorderedItems = [];
       newOrder.forEach(itemId => {
         const item = group.items.find(item => item.id === itemId);
@@ -1219,14 +1353,23 @@ class UIManager {
           reorderedItems.push(item);
         }
       });
-      
+
       group.items = reorderedItems;
+      group.updatedAt = new Date().toISOString();
       successMessage = '条目排序已更新';
     }
-    
+
     // 保存数据并显示成功消息
     this.dataManager.saveData();
     showNotification(successMessage, 'success');
+  }
+
+  /**
+   * 处理条目排序（保留原方法以兼容性）
+   * @param {HTMLElement} target - 目标元素
+   */
+  handleItemSort(target) {
+    this.handleItemSortFromPlaceholder();
   }
 
   /**
